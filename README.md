@@ -15,7 +15,7 @@ If you already have the `venv` environment, start with `source venv/bin/activate
 Run the dataset loader:
 
 ```bash
-python src/dataset/loader_fb15k-237.py
+python src/dataset/loader_fb15k_237.py
 ```
 
 On the first run, PyTorch Geometric downloads and processes the official train,
@@ -24,3 +24,11 @@ cache.
 
 The loader prints some dataset statistics: the number of triples and relation types in each split and
 saves a tab-separated table that maps relation IDs to their original names
+
+## Feature counting
+
+To obtain statistics on graph relations execute the following command
+
+```bash
+python -m src.features.relation_features
+```

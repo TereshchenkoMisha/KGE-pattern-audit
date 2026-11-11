@@ -38,7 +38,7 @@ def save_relation_names(root: Path, splits: dict[str, torch.Tensor]) -> None:
                 if names.setdefault(relation_id, name) != name:
                     raise ValueError(f"Inconsistent name for relation ID {relation_id}")
 
-    output = root / 'relations.сsv'
+    output = root / 'relations.csv'
     with output.open('w', encoding='utf-8', newline='') as destination:
         writer = csv.writer(destination, delimiter='\t')
         writer.writerow(('relation_id', 'relation_name'))
