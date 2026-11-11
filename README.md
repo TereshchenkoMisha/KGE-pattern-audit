@@ -47,6 +47,6 @@ To compute composition on the graph execute
 python -m src.features.composition
 ```
 
-This command reads that table (from `relation_features_base.csv`), adds `composition` and
+This command reads that table (`relation_features_base.csv`), adds `composition` and
 `composition_body_available`, and writes the complete feature table to
 `data/FB15k-237/relation_features.csv`
