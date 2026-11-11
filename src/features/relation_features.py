@@ -36,7 +36,7 @@ def inversion(pairs: dict[int, set[tuple[int, int]]]) -> dict[int, float]:
             scores[id_a] = max(scores[id_a], len(reversed_pairs & relations_b) / len(relations_a))
     return scores
 
-if __name__ == "__main__":
+def main() -> None:
     splits = load_fb15k_237(DATASET_DIR)
 
     # Train counts
@@ -80,3 +80,6 @@ if __name__ == "__main__":
             ])
 
     print(f'Saved relation features to {output}')
+
+if __name__ == "__main__":
+    main()
