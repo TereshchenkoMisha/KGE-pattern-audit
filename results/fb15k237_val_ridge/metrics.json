@@ -1,0 +1,11 @@
+{
+  "n_relations": 222,
+  "baseline_mae": 0.12395827332709117,
+  "pattern_mae": 0.12242376049596701,
+  "mae_improvement": 0.0015345128311241574,
+  "n_relations_before_filter": 237,
+  "n_relations_after_filter": 222,
+  "n_excluded": 15,
+  "runtime_seconds": 4.009,
+  "fold_seed": 0
+}

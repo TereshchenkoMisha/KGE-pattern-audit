@@ -131,15 +131,32 @@ def write_feature_table(
     with output_path.open("w", encoding="utf-8", newline="") as destination:
         writer = csv.DictWriter(
             destination,
-            fieldnames=[*fieldnames, "composition", "composition_body_available"],
+            fieldnames=[
+                *fieldnames,
+                "composition",
+                "composition_body_available",
+                "composition_body_p",
+                "composition_body_q",
+                "composition_matches",
+                "composition_support",
+            ],
         )
         writer.writeheader()
 
         for row, relation_id in zip(rows, relation_ids, strict=True):
+            best = result.best_bodies.get(relation_id)
+            if best is None:
+                body_p = body_q = matches = support = 0
+            else:
+                (body_p, body_q), matches, support = best
             writer.writerow({
                 **row,
                 "composition": result.scores[relation_id],
                 "composition_body_available": int(result.body_available),
+                "composition_body_p": body_p,
+                "composition_body_q": body_q,
+                "composition_matches": matches,
+                "composition_support": support,
             })
 
 def main() -> None:

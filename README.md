@@ -30,7 +30,7 @@ Then add composition and its availability flag:
 python -m src.features.composition
 ```
 
-The complete table is written to `data/FB15k-237/relation_features.csv`.
+The complete table is written to `data/FB15k-237/relation_features.csv`. It includes the best body's relation IDs, matched-pair count, distinct-pair support, and composition availability for audit.
 
 ## Train and evaluate TransE
 

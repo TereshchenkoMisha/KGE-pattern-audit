@@ -12,21 +12,21 @@ Do training-only relation-pattern measurements predict per-relation KGE performa
 
 The Ridge comparison is implemented for five shared relation-level folds. It compares a frequency baseline using `log(train_count)` with a pattern model that adds symmetry, inversion, composition, and 1-to-N. Both models use the same held-out relations. `alpha` is selected within each outer training fold, with standardization inside the cross-validation pipeline.
 
-The synthetic pipeline check joined **25 feature rows** to **25 validation rows** without changing the row count. Every relation received exactly one out-of-fold prediction from each model, and both MAEs were calculated on the same 25 rows. The synthetic comparison gave baseline MAE **0.0518**, pattern-model MAE **0.0383**, and `baseline MAE - pattern MAE` **0.0135**. The recorded runtime was **5.78 seconds**. This is a pipeline check only; it is not evidence about FB15k-237.
+The FB15k-237 TransE validation table contains per-relation filtered MRR from one seed (`seed=0`). After joining it to the training-only feature table, **222 relations** met both Ridge eligibility conditions out of **237 feature rows**. The 15 exclusions were 14 relations without a validation-MRR row and one relation with fewer than 50 unique training triples. The join retained one row per relation.
 
-The FB15k-237 validation pilot is **pending**. The required `relation_features.csv` and `relation_mrr_val.csv` are not present in the project workspace. Therefore the real number of eligible relations, real MAEs, and elapsed pilot time cannot yet be reported. The comparison script will report relation counts before and after eligibility filters, exclusion reasons, out-of-fold predictions, fold assignment, both MAEs, their difference, and runtime when run with those files.
+The five-fold nested Ridge comparison gave baseline MAE **0.12396**, pattern-model MAE **0.12242**, and `baseline MAE - pattern MAE` **0.00153**. The measured runtime was **4.01 seconds**. This is a pilot comparison on validation MRR for TransE with one seed; the sign is positive, but the pilot does not establish confirmatory improvement.
 
-The composition rule's minimum-support example is illustrative, not a measured dataset example: if an ordered body supports 12 distinct `(h,t)` pairs and 8 also occur under the target relation, it passes the 10-pair threshold and has confidence `8/12 = 0.667`. A real example and its support count remain pending the feature table.
+One training-data composition example is target relation `r=22` (`/education/educational_institution/students_graduates./education/education/student`) and ordered body `(p=81, q=22)`. The body supported **1,672 distinct pairs**, all 1,672 also present under the target relation, for confidence **1.000**. This exceeds the 10-pair minimum support.
 
 ## Reproduction
 
-The synthetic pipeline check is reproduced from the repository root with:
+The synthetic check is reproduced from the repository root with:
 
 ```powershell
 python scripts/compare_ridge.py --synthetic
 ```
 
-The real pilot command and CSV column requirements are documented in [README.md](../README.md). Its results are saved under `results/fb15k237_val_ridge/` by default.
+Dataset preparation, feature extraction, TransE training/evaluation, and the real pilot command are documented in [README.md](../README.md). The pilot outputs are saved under `results/fb15k237_val_ridge/`; the fold mapping, exclusions, eligibility summary, per-relation predictions, and metrics are retained there.
 
 ## Work after the midway check
 
