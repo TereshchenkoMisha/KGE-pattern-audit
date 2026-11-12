@@ -64,6 +64,6 @@ Run the FB15k-237 validation pilot after extracting the feature and TransE MRR t
 python scripts/compare_ridge.py --features data/FB15k-237/relation_features.csv --mrr relation_mrr_val.csv
 ```
 
-The script accepts the feature column names `one_to_n` or `tails_per_head` and MRR columns `filtered_mrr` or `mrr`, `validation_queries` or `n_queries`. It checks for unique relation IDs before the one-to-one join. Ridge eligibility requires at least 50 unique training triples and one or more validation queries. Outputs under `results/fb15k237_val_ridge/` include eligibility counts, exclusion reasons, the fold-to-relation mapping, per-relation true MRR and both predictions, and the paired MAEs.
+The script accepts the feature column names `one_to_n` or `tails_per_head` and MRR columns `filtered_mrr` or `mrr`, `validation_queries` or `n_queries`. It checks for unique relation IDs before the one-to-one join. Ridge eligibility requires at least 50 unique training triples and one or more validation queries. Outputs under `results/fb15k237_val_ridge/` include a snapshot of the feature table used, eligibility counts, exclusion reasons, the fold-to-relation mapping, per-relation true MRR and both predictions, and the paired MAEs.
 
 The midway report is in [reports/midway_check.md](reports/midway_check.md). After the check, the next stages are four KGE models with five seeds, the confirmatory FB15k-237 comparison, and descriptive WN18RR analysis.

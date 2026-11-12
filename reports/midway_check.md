@@ -1,9 +1,5 @@
 # C1 - Midway check
 
-Project update | Week 9
-
-Owner: Anna | Review: Mikhail and Saida
-
 ## Project question
 
 Do training-only relation-pattern measurements predict per-relation KGE performance on held-out relation types beyond training frequency?
@@ -26,7 +22,7 @@ The synthetic check is reproduced from the repository root with:
 python scripts/compare_ridge.py --synthetic
 ```
 
-Dataset preparation, feature extraction, TransE training/evaluation, and the real pilot command are documented in [README.md](../README.md). The pilot outputs are saved under `results/fb15k237_val_ridge/`; the fold mapping, exclusions, eligibility summary, per-relation predictions, and metrics are retained there.
+Dataset preparation, feature extraction, TransE training/evaluation, and the real pilot command are documented in [README.md](../README.md). The exact feature table used and the pilot outputs are saved under `results/fb15k237_val_ridge/`; the fold mapping, exclusions, eligibility summary, per-relation predictions, and metrics are retained there. The corresponding validation-MRR input is [relation_mrr_val.csv](../relation_mrr_val.csv).
 
 ## Work after the midway check
 

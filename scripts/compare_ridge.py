@@ -25,6 +25,7 @@ ALPHAS = np.logspace(-4, 4, 33)
 def load_inputs(features_path: Path, mrr_path: Path) -> tuple[pd.DataFrame, pd.DataFrame]:
     features = pd.read_csv(features_path)
     mrr = pd.read_csv(mrr_path)
+    # Normalize column names emitted by the feature and TransE pipeline scripts.
     if "one_to_n" not in features and "tails_per_head" in features:
         features = features.rename(columns={"tails_per_head": "one_to_n"})
     if "filtered_mrr" not in mrr and "mrr" in mrr:
@@ -40,6 +41,7 @@ def load_inputs(features_path: Path, mrr_path: Path) -> tuple[pd.DataFrame, pd.D
     features = features[["relation_id", "train_count", *FEATURES]]
     mrr = mrr[["relation_id", "filtered_mrr", "validation_queries"]]
     for name, frame in (("relation_features.csv", features), ("relation_mrr_val.csv", mrr)):
+        # Reject duplicate keys before joining so relations cannot be multiplied.
         duplicate_ids = frame.loc[frame["relation_id"].duplicated(keep=False), "relation_id"]
         if not duplicate_ids.empty:
             raise ValueError(
@@ -111,6 +113,7 @@ def _predict_nested(
         inner_k = min(5, len(train))
         if inner_k < 2:
             raise ValueError("Outer training folds need at least two relations for alpha tuning")
+        # Keeping scaling in the pipeline refits it inside every inner CV split.
         model = Pipeline([("scale", StandardScaler()), ("ridge", Ridge())])
         search = GridSearchCV(
             model,
@@ -135,6 +138,7 @@ def compare(data: pd.DataFrame, seed: int = 0) -> tuple[pd.DataFrame, pd.DataFra
     frequency = np.log(data[["train_count"]].to_numpy(float))
     pattern = np.column_stack([frequency, data[FEATURES].to_numpy(float)])
     shuffled = np.random.RandomState(seed).permutation(n)
+    # Assign each relation to exactly one of five shared outer folds.
     fold_id = np.empty(n, dtype=int)
     fold_id[shuffled] = np.arange(n) % 5
     outer = [(np.flatnonzero(fold_id != f), np.flatnonzero(fold_id == f)) for f in range(5)]
@@ -150,6 +154,7 @@ def compare(data: pd.DataFrame, seed: int = 0) -> tuple[pd.DataFrame, pd.DataFra
     if predictions[["true_mrr", "baseline_prediction", "pattern_prediction"]].isna().any().any():
         raise AssertionError("Both models must predict every row with a target")
 
+    # Both metrics use the same relation order and the paired held-out predictions.
     baseline_mae = float(mean_absolute_error(y, baseline_pred))
     pattern_mae = float(mean_absolute_error(y, pattern_pred))
     metrics = {
@@ -206,6 +211,7 @@ def run_real(features: Path, mrr: Path, output_dir: Path, seed: int) -> dict:
     started = time.perf_counter()
     joined, eligible = load_inputs(features, mrr)
     output_dir.mkdir(parents=True, exist_ok=True)
+    # Keep eligibility evidence even if model fitting later finds too few relations.
     joined.loc[joined["exclusion_reason"].ne("")].to_csv(output_dir / "exclusions.csv", index=False)
     eligible.to_csv(output_dir / "eligible_relations.csv", index=False)
     counts = {

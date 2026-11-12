@@ -1,3 +1,5 @@
+"""Measure relation composition confidence from training-only paths."""
+
 from dataclasses import dataclass
 from pathlib import Path
 from src.dataset.loader_fb15k_237 import DATASET_DIR, load_fb15k_237
@@ -37,6 +39,7 @@ def find_candidate_bodies(
         for p, heads in incoming[middle].items():
             for q, tails in outgoing[middle].items():
                 body = (p, q)
+                # This count is a fast candidate filter; endpoint pairs are deduplicated later.
                 new_paths = len(heads) * len(tails)
                 path_counts[body] = path_counts.get(body, 0) + new_paths
                 middle_nodes.setdefault(body, []).append(middle)
@@ -90,6 +93,7 @@ def composition_scores(
             body_available = True
             matches_by_relation: dict[int, int] = {}
 
+            # A pair can support multiple target relations, so count each match by relation.
             for pair in supported_pairs:
                 for relation_id in relations_by_pair.get(pair, ()):
                     matches_by_relation[relation_id] = (matches_by_relation.get(relation_id, 0) + 1)
@@ -114,7 +118,7 @@ def write_feature_table(
     output_path: Path,
     result: CompositionResult,
 ) -> None:
-    """Прочитать базовый CSV и добавить две колонки по relation_id."""
+    """Add composition scores and best-body support details to the feature table."""
     with base_path.open(encoding="utf-8", newline="") as source:
         reader = csv.DictReader(source)
         fieldnames = reader.fieldnames
@@ -144,6 +148,7 @@ def write_feature_table(
         writer.writeheader()
 
         for row, relation_id in zip(rows, relation_ids, strict=True):
+            # Store the strongest body and its numerator/denominator for auditability.
             best = result.best_bodies.get(relation_id)
             if best is None:
                 body_p = body_q = matches = support = 0

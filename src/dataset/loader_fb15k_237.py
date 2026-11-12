@@ -1,3 +1,5 @@
+"""Load standard PyG FB15k-237 splits and export relation-name metadata."""
+
 import csv
 from pathlib import Path
 import torch
@@ -14,9 +16,9 @@ def load_fb15k_237(root: str | Path) -> dict[str, torch.Tensor]:
     splits = {}
     for split in RAW_FILES:
         data = FB15k_237(root=str(root), split=split)[0]
-        heads, tails = data.edge_index # get IDs of heads and tails
-        splits[split] = torch.stack((heads, data.edge_type, tails), dim=1) # data.edge_type contains relation IDs
-        # torch.stack creates the tensors of the fprm: [[head_id, relation_id, tail_id],]
+        # PyG stores graph endpoints and relation IDs separately; combine them into triples.
+        heads, tails = data.edge_index
+        splits[split] = torch.stack((heads, data.edge_type, tails), dim=1)
     return splits
 
 
@@ -31,6 +33,7 @@ def save_relation_names(root: Path, splits: dict[str, torch.Tensor]) -> None:
     for split, filename in RAW_FILES.items():
         relation_ids = splits[split][:, 1].tolist()
 
+        # The raw TSV preserves the original relation name at each encoded relation ID.
         with (raw_dir / filename).open(encoding='utf-8', newline='') as source:
             raw_triples = csv.reader(source, delimiter='\t')
 

@@ -1,3 +1,5 @@
+"""Evaluate filtered per-relation validation MRR for a saved TransE checkpoint."""
+
 import csv
 from collections import defaultdict
 from pathlib import Path
@@ -18,6 +20,7 @@ class FilteredEvaluator:
         self.true_heads = defaultdict(set)
 
         for h, r, t in all_true_triples.tolist():
+            # Keep answer sets for efficient head- and tail-query filtering.
             self.true_tails[(h, r)].add(t)
             self.true_heads[(r, t)].add(h)
 
@@ -62,7 +65,7 @@ class FilteredEvaluator:
             scores = self.model.score_triples(candidate_triples)
             scores = scores.reshape(batch_size, num_candidates)
 
-            #
+            # Remove other known correct answers while preserving the query target.
             for i, (h, r, t) in enumerate(triples):
                 if prediction == "tail":
                     known_answers = self.true_tails[(h, r)]
@@ -100,7 +103,7 @@ def main():
     train = splits["train"].long()
     val = splits["val"].long()
 
-    # Filtering uses train + validation triples.
+    # Validation filtering masks other true answers known from train and validation.
     all_true = torch.cat([train, val], dim=0)
 
     
@@ -132,7 +135,7 @@ def main():
         num_entities=num_entities,
     )
 
-    # Store reciprocal ranks for both head and tail queries.
+    # Aggregate both prediction directions under each relation ID.
     relation_rr = defaultdict(list)
 
     validation_triples = val.tolist()

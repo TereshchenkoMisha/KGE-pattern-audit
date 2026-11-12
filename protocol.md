@@ -1,7 +1,5 @@
 # C1 - The pattern audit, at scale
 
-Research protocol | Week 9
-
 ## Research question
 
 Do training-only relation-pattern measurements predict per-relation KGE test MRR for relation types held out from the performance-prediction model, beyond training frequency?

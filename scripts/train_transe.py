@@ -1,4 +1,6 @@
 
+"""Train the configured TransE model on the FB15k-237 training split."""
+
 import random
 import logging
 from pathlib import Path
@@ -23,6 +25,7 @@ def negative_sampling(
     num_entities: int,
     num_negatives: int,
 ) -> torch.Tensor:
+    # Corrupt exactly one entity endpoint for each generated negative triple.
     batch_size = positive_triples.size(0)
 
     negatives = positive_triples.repeat_interleave(
@@ -68,8 +71,7 @@ def main():
 
     train_triples = splits["train"].long()
 
-    # Determine the number of entities and relations
-    # from the shared ID space of all official splits.
+    # Use every split to recover the complete entity and relation ID ranges.
     all_triples = torch.cat(list(splits.values()), dim=0)
 
     num_entities = int(
@@ -140,6 +142,7 @@ def main():
                 positive.size(0), num_negatives
             )
 
+            # Margin ranking loss pushes positive scores above sampled negatives.
             loss = F.relu(
                 margin
                 - positive_scores.unsqueeze(1)
