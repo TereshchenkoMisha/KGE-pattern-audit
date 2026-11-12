@@ -1,0 +1,19 @@
+
+# Reproducibility
+seed: 0
+
+# Model
+embedding_dim: 100
+p_norm: 1
+
+# Training
+epochs: 100
+batch_size: 1024
+learning_rate: 0.001
+margin: 1.0
+num_negatives: 1
+
+# Paths
+dataset_dir: data/FB15k-237
+checkpoint_path: checkpoints/transe_seed0.pt
+log_path: logs/transe_seed0.log

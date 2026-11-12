@@ -1,35 +1,69 @@
 # KGE-pattern-audit
 
-## Ridge comparison on held-out relation types
+This project tests whether training-only relation patterns predict per-relation knowledge graph embedding performance beyond training frequency. Feature definitions and evaluation choices are recorded in [protocol.md](protocol.md).
 
-The Ridge pilot compares a frequency baseline (`log(train_count)`) with the same predictor plus `symmetry`, `inversion`, `composition`, and `one_to_n`. Five shared outer folds hold out complete relation types. Each model's `alpha` is selected only within the outer training portion; `StandardScaler` is part of the pipeline and is refit in every inner training split.
+## Environment and data
 
-### Synthetic pipeline check
+From the repository root, install the dependencies:
 
-From the repository root, run:
+```bash
+python -m pip install -r requirements.txt
+```
 
-```powershell
-python -m pip install numpy pandas scikit-learn
+Load the standard PyG FB15k-237 splits (the first run downloads and processes the dataset):
+
+```bash
+python src/dataset/loader_fb15k_237.py
+```
+
+## Extract relation features
+
+Calculate train counts, symmetry, inversion, and mean tails per head:
+
+```bash
+python -m src.features.relation_features
+```
+
+Then add composition and its availability flag:
+
+```bash
+python -m src.features.composition
+```
+
+The complete table is written to `data/FB15k-237/relation_features.csv`.
+
+## Train and evaluate TransE
+
+Train the configured TransE model and save its checkpoint:
+
+```bash
+python scripts/train_transe.py
+```
+
+Evaluate filtered validation MRR by relation using the saved checkpoint:
+
+```bash
+python scripts/evaluate_transe.py
+```
+
+This writes `relation_mrr_val.csv` in the project root.
+
+## Ridge comparison on held-out relations
+
+The comparison uses five shared relation-level folds. The frequency baseline uses `log(train_count)`; the pattern model adds symmetry, inversion, composition, and 1-to-N. Alpha is tuned within each outer training fold, with `StandardScaler` in the pipeline so scaling is refit inside each inner fold.
+
+Run the deterministic synthetic pipeline check:
+
+```bash
 python scripts/compare_ridge.py --synthetic
 ```
 
-This writes `results/synthetic_ridge/predictions.csv`, `folds.csv`, and `metrics.json`. The deterministic synthetic example checks that each relation has exactly one prediction from each model and both MAEs use the same rows. It is a pipeline check, not a project result.
+Run the FB15k-237 validation pilot after extracting the feature and TransE MRR tables:
 
-### FB15k-237 validation pilot
-
-The real pilot expects one row per relation in each CSV:
-
-- `relation_features.csv`: `relation_id`, `train_count`, `symmetry`, `inversion`, `composition`, `one_to_n`.
-- `relation_mrr_val.csv`: `relation_id`, `filtered_mrr`, `validation_queries`.
-
-This repository snapshot contains the comparison script but not the feature-extraction or TransE training/evaluation scripts from dependencies 04, 07, and 08. The command below starts from their prepared CSV outputs; those upstream commands need to be added when the dependencies are brought into this branch:
-
-```powershell
-python scripts/compare_ridge.py --features path/to/relation_features.csv --mrr path/to/relation_mrr_val.csv
+```bash
+python scripts/compare_ridge.py --features data/FB15k-237/relation_features.csv --mrr relation_mrr_val.csv
 ```
 
-An optional `--output-dir` changes the default output folder `results/fb15k237_val_ridge`; `--seed` sets the outer-fold seed and defaults to `0`. The script rejects duplicate relation IDs before joining, uses a one-to-one outer join, and records exclusions for missing rows/values, fewer than 50 unique train triples, or no validation queries. It writes `eligibility.json`, `exclusions.csv`, `eligible_relations.csv`, `predictions.csv`, `folds.csv`, and `metrics.json`. Eligibility counts and reasons are saved before model fitting, including when too few relations remain for cross-validation. Each prediction row contains the fold, true validation MRR, and both predictions. The metrics include the two MAEs, `baseline_mae - pattern_mae`, included/excluded counts, and elapsed time.
+The script accepts the feature column names `one_to_n` or `tails_per_head` and MRR columns `filtered_mrr` or `mrr`, `validation_queries` or `n_queries`. It checks for unique relation IDs before the one-to-one join. Ridge eligibility requires at least 50 unique training triples and one or more validation queries. Outputs under `results/fb15k237_val_ridge/` include eligibility counts, exclusion reasons, the fold-to-relation mapping, per-relation true MRR and both predictions, and the paired MAEs.
 
-### Midway check and work after it
-
-The short midway report is in `reports/midway_check.md`. The real FB15k-237 pilot requires the two input CSVs above; the current report marks its results and data-derived composition example as pending rather than substituting synthetic values. After the midway check, the study proceeds to four KGE models and five seeds, the confirmatory FB15k-237 comparison, and descriptive WN18RR analysis.
+The midway report is in [reports/midway_check.md](reports/midway_check.md). After the check, the next stages are four KGE models with five seeds, the confirmatory FB15k-237 comparison, and descriptive WN18RR analysis.

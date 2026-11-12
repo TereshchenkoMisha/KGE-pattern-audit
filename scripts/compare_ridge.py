@@ -25,6 +25,12 @@ ALPHAS = np.logspace(-4, 4, 33)
 def load_inputs(features_path: Path, mrr_path: Path) -> tuple[pd.DataFrame, pd.DataFrame]:
     features = pd.read_csv(features_path)
     mrr = pd.read_csv(mrr_path)
+    if "one_to_n" not in features and "tails_per_head" in features:
+        features = features.rename(columns={"tails_per_head": "one_to_n"})
+    if "filtered_mrr" not in mrr and "mrr" in mrr:
+        mrr = mrr.rename(columns={"mrr": "filtered_mrr"})
+    if "validation_queries" not in mrr and "n_queries" in mrr:
+        mrr = mrr.rename(columns={"n_queries": "validation_queries"})
     required_features = {"relation_id", "train_count", *FEATURES}
     required_mrr = {"relation_id", "filtered_mrr", "validation_queries"}
     if missing := required_features - set(features.columns):
